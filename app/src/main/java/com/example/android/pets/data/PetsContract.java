@@ -6,7 +6,7 @@ public final class PetsContract {
     //private constructor
     private PetsContract(){}
 
-    public static abstract class PetsEntity implements BaseColumns{
+    public static abstract class PetEntry implements BaseColumns{
         //table information in constant
         public static final String TABLE_NAME = "pets";
         public static final String _ID = BaseColumns._ID;

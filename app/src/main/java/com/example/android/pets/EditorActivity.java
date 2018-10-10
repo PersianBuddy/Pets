@@ -15,7 +15,7 @@
  */
 package com.example.android.pets;
 //import inner class of PetsContract to use it directly inside app
-import com.example.android.pets.data.PetsContract.PetsEntity;
+import com.example.android.pets.data.PetsContract.PetEntry;
 
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -90,11 +90,11 @@ public class EditorActivity extends AppCompatActivity {
                 String selection = (String) parent.getItemAtPosition(position);
                 if (!TextUtils.isEmpty(selection)) {
                     if (selection.equals(getString(R.string.gender_male))) {
-                        mGender = PetsEntity.GENDER_MALE; // Male
+                        mGender = PetEntry.GENDER_MALE; // Male
                     } else if (selection.equals(getString(R.string.gender_female))) {
-                        mGender = PetsEntity.GENDER_FEMALE; // Female
+                        mGender = PetEntry.GENDER_FEMALE; // Female
                     } else {
-                        mGender = PetsEntity.GENDER_UNKNOWN; // Unknown
+                        mGender = PetEntry.GENDER_UNKNOWN; // Unknown
                     }
                 }
             }
