@@ -15,16 +15,19 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetDbHelper;
 import com.example.android.pets.data.PetsContract.PetEntry;
@@ -33,6 +36,8 @@ import com.example.android.pets.data.PetsContract.PetEntry;
  * Displays list of pets that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity {
+    //subclass of SqliteOperHelper
+    private PetDbHelper mDbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +53,28 @@ public class CatalogActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        mDbHelper = new PetDbHelper(this);
         displayDatabaseInfo();
+    }
+
+    //A method to insert a dummy row inside database
+    private void insertDummyData(){
+
+        //get writable format of database
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        //Create Content values to put into database
+        ContentValues values = new ContentValues();
+        values.put(PetEntry.COLUMN_PET_NAME,"Garfield");
+        values.put(PetEntry.COLUMN_PET_BREED,"Tabby");
+        values.put(PetEntry.COLUMN_PET_GENDER,PetEntry.GENDER_MALE);
+        values.put(PetEntry.COLUMN_PET_WEIGHT,14);
+
+        //insert dummy values into database
+        long newRowId= db.insert(PetEntry.TABLE_NAME,null,values);
+        //show id of new row inside log
+        Log.v("CatalogActivity.java","New Row Id:"+newRowId);
     }
 
     @Override
@@ -65,7 +91,8 @@ public class CatalogActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
-                // Do nothing for now
+                insertDummyData();
+                displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
@@ -79,9 +106,6 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database.
      */
     private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-        PetDbHelper mDbHelper = new PetDbHelper(CatalogActivity.this);
         // Create and/or open a database to read from it
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
         // Perform this raw SQL query "SELECT * FROM pets"
