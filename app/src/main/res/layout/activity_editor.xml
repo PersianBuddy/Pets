@@ -108,6 +108,7 @@
                 android:id="@+id/edit_pet_weight"
                 android:hint="@string/hint_pet_weight"
                 android:inputType="number"
+                android:text="0"
                 style="@style/EditorFieldStyle" />
 
             <!-- Units for weight (kg) -->

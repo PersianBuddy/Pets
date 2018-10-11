@@ -55,7 +55,31 @@ public class CatalogActivity extends AppCompatActivity {
         });
 
         mDbHelper = new PetDbHelper(this);
-        displayDatabaseInfo();
+
+        displayInsertResult();
+
+    }
+
+    // Method that shows (as toast) result of adding new Pet into database
+    //info are getting from an intent from EditorActivity
+    private void displayInsertResult(){
+        //get newRowId from intent from editorActivity
+        Bundle extras = getIntent().getExtras();
+        try{
+            if (!extras.isEmpty()){
+                Long insertResult = extras.getLong("rowId");
+                if (insertResult ==-1){
+                    Toast.makeText(this, "Error adding new pet to database", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(this,"New Row with id " +
+                            insertResult+ " has been created!",Toast.LENGTH_SHORT).show();
+                }
+            }else{
+                Toast.makeText(this, "Empty Extra", Toast.LENGTH_SHORT).show();
+            }
+        }catch (NullPointerException e){
+            Log.e("CatalogActivity","Bundle is null",e);
+        }
     }
 
     //A method to insert a dummy row inside database
@@ -101,6 +125,13 @@ public class CatalogActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        displayDatabaseInfo();
+    }
+
     /**
      * Temporary helper method to display information in the onscreen TextView about the state of
      * the pets database.
