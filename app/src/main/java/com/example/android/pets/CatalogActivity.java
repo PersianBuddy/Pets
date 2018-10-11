@@ -139,14 +139,32 @@ public class CatalogActivity extends AppCompatActivity {
     private void displayDatabaseInfo() {
         // Create and/or open a database to read from it
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
-        // Perform this raw SQL query "SELECT * FROM pets"
-        // to get a Cursor that contains all rows from the pets table.
-        Cursor cursor = db.rawQuery("SELECT * FROM " + PetEntry.TABLE_NAME, null);
+
+        //Make a query to select all rows
+        //make a projection for columns that we want to be selected
+        String[] projection={PetEntry._ID,PetEntry.COLUMN_PET_NAME,
+        PetEntry.COLUMN_PET_BREED,PetEntry.COLUMN_PET_GENDER,PetEntry.COLUMN_PET_WEIGHT};
+        Cursor cursor = db.query(PetEntry.TABLE_NAME,projection,null,null,null,null,null);
+
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
             TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+            displayView.append("There are "+cursor.getCount()+ " rows in pets table\n\n");
+            //display name of columns at the top
+            displayView.append(PetEntry._ID+" | "+PetEntry.COLUMN_PET_NAME+" | "+
+                    PetEntry.COLUMN_PET_BREED+" | "+PetEntry.COLUMN_PET_GENDER+" | "+PetEntry.COLUMN_PET_WEIGHT+" \n ");
+            //go to first item inside cursor
+            cursor.moveToFirst();
+            //while there is item inside cursor read it and add it to content variable
+            do {
+                String temp =cursor.getString(cursor.getColumnIndex(PetEntry._ID))+ " | "+
+                        cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME))+ " | "+
+                        cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED))+ " | "+
+                        cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER))+ " | "+
+                        cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT))+ " \n ";
+                displayView.append(temp);
+            }while (cursor.moveToNext());
         } finally {
             // Always close the cursor when you're done reading from it. This releases all its
             // resources and makes it invalid.
