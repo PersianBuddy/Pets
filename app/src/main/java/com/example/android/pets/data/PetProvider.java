@@ -1,12 +1,16 @@
 package com.example.android.pets.data;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+
+import com.example.android.pets.data.PetsContract.PetEntry;
 
 
 public class PetProvider extends ContentProvider {
@@ -40,8 +44,29 @@ public class PetProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] strings, @Nullable String s, @Nullable String[] strings1, @Nullable String s1) {
-        return null;
+    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+        //a readable database to read form it
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        //Cursor object to be returned
+        Cursor cursor;
+
+        //check uri if it matches with any available pattern in  sUriMatcher
+        int match = sUriMatcher.match(uri);
+        switch (match){
+            case PETS://select all object from table
+                cursor= db.query(PetEntry.TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                break;
+            case PETS_ID:
+                selection= PetEntry._ID + " = ?";
+                selectionArgs =new String[] {String.valueOf(ContentUris.parseId(uri))};
+                cursor = db.query(PetEntry.TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                break;
+            default:
+                throw new IllegalArgumentException("Can not query unknown uri" + uri);
+        }
+
+        return cursor;
     }
 
     @Nullable
