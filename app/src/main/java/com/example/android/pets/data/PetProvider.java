@@ -2,20 +2,35 @@ package com.example.android.pets.data;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.example.android.pets.CatalogActivity;
-
-import java.security.acl.LastOwnerException;
 
 public class PetProvider extends ContentProvider {
     /** Tag for the log messages */
     private static final String lOG_TAG = PetProvider.class.getSimpleName();
     //database helper object
     PetDbHelper mDbHelper;
+
+    //constants that used in uriMatcher patterns
+    //constant for pattern that represent whole pet table
+    private static final int PETS =100;
+    //constant for pattern that represent a row with specific id
+    private static final int PETS_ID = 101;
+
+    //global variable UriMatcher that will be used to make uri pattern
+    private static UriMatcher sUriMatcher =new UriMatcher(UriMatcher.NO_MATCH);
+    //create uri patterns
+    static {
+        //pattern for whole table
+        sUriMatcher.addURI(PetsContract.CONTENT_AUTHORITY,PetsContract.PATH_PETS,PETS);
+        //pattern for one row of table with specific id
+        sUriMatcher.addURI(PetsContract.CONTENT_AUTHORITY, PetsContract.PATH_PETS+ "/#",PETS_ID);
+    }
+
 
     @Override
     public boolean onCreate() {
