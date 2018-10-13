@@ -95,11 +95,16 @@ public class CatalogActivity extends AppCompatActivity {
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_PET_NAME,"Garfield");
         values.put(PetEntry.COLUMN_PET_BREED,"Tabby");
-        values.put(PetEntry.COLUMN_PET_GENDER,PetEntry.GENDER_MALE);
+        values.put(PetEntry.COLUMN_PET_GENDER, PetEntry.GENDER_MALE);
         values.put(PetEntry.COLUMN_PET_WEIGHT,14);
 
-        //insert dummy values into database
-        getContentResolver().insert(PetEntry.CONTENT_URI,values);
+        try{
+            //insert dummy values into database
+            getContentResolver().insert(PetEntry.CONTENT_URI,values);
+        }catch (IllegalArgumentException e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     @Override

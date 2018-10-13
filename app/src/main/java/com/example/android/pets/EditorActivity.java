@@ -127,12 +127,12 @@ public class EditorActivity extends AppCompatActivity {
         //get values from view objects
         String petName =mNameEditText.getText().toString().trim();
         String petBreed = mBreedEditText.getText().toString().trim();
-        int petWeight = Integer.parseInt(mWeightEditText.getText().toString().trim());
-
-        //check if field aren't empty
-        if (TextUtils.isEmpty(petName) || TextUtils.isEmpty(petBreed)){
-            Toast.makeText(this, "Please Fill required info of pet", Toast.LENGTH_SHORT).show();
-            return;
+        String weightString =mWeightEditText.getText().toString().trim();
+        Integer petWeight;
+        if (!weightString.isEmpty()){
+            petWeight= Integer.parseInt(weightString);
+        }else{
+            petWeight =null;
         }
 
         //save data into ContentValue object
@@ -142,8 +142,15 @@ public class EditorActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_WEIGHT,petWeight);
         values.put(PetEntry.COLUMN_PET_GENDER,mGender);
 
-        //insert into database using PetProvider class
-        Uri newRowUri = getContentResolver().insert(PetEntry.CONTENT_URI,values);
+        //uri for return value of insert in PetProvider class
+        Uri newRowUri=null;
+        try {
+            //insert into database using PetProvider class
+            newRowUri = getContentResolver().insert(PetEntry.CONTENT_URI,values);
+        }catch (IllegalArgumentException e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
 
         //check if insertion was successful
         if (newRowUri ==null){
@@ -151,6 +158,7 @@ public class EditorActivity extends AppCompatActivity {
         }else{
             Toast.makeText(this, R.string.editor_insert_pet_successful, Toast.LENGTH_SHORT).show();
         }
+
 //        //insert data into database with direct use of PetDbHelper class
 //        SQLiteDatabase db = mDbHelper.getWritableDatabase();
 //        long newRowId=db.insert(PetEntry.TABLE_NAME,null,values);
@@ -180,6 +188,7 @@ public class EditorActivity extends AppCompatActivity {
             case R.id.action_save:
                 //insert new pet into database
                 insertPet();
+                //exit this activity and return to previous one
                 finish();
                 return true;
             // Respond to a click on the "Delete" menu option

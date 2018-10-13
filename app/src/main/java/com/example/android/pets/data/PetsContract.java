@@ -46,4 +46,8 @@ public final class PetsContract {
         //general content uri that take whole pets table
         public static final Uri CONTENT_URI= Uri.withAppendedPath(BASE_CONTENT_URI,PATH_PETS);
     }
+
+    public static boolean isValidGender(int gender){
+        return  (gender==PetEntry.GENDER_MALE || gender ==PetEntry.GENDER_FEMALE || gender ==PetEntry.GENDER_UNKNOWN);
+    }
 }

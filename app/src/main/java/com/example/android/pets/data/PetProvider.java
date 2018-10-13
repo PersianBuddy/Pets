@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetsContract.PetEntry;
 
@@ -79,6 +80,24 @@ public class PetProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues contentValues) {
+        //check sanity of contentValues
+        if (contentValues == null || contentValues.size() == 0)return null;
+        //sanity check of inputs in contentValues
+        //check for gender validation
+        Integer gender =contentValues.getAsInteger("gender");
+        if (gender ==null || !PetsContract.isValidGender(gender)){
+            throw new IllegalArgumentException("The value fo gender of pet must be an integer between 0-2");
+        }
+        //check validity of weight
+        Integer weight =contentValues.getAsInteger("weight");
+        if (weight!=null && weight <0){
+            throw new IllegalArgumentException("The value of weight must be positive");
+        }
+        //Check validity of name
+        String name= contentValues.getAsString("name");
+        if (name== null || name.isEmpty()){
+            throw new IllegalArgumentException("Pet require a name");
+        }
 
         //check validity of uri
         int match = sUriMatcher.match(uri);
@@ -95,8 +114,48 @@ public class PetProvider extends ContentProvider {
     }
 
     @Override
-    public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String s, @Nullable String[] strings) {
-        return 0;
+    public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String selection, @Nullable String[] selectionArg) {
+         //sanity check of inputs in contentValues
+        if (contentValues == null || contentValues.size() == 0)return 0;
+        //Check validity of name
+        if (contentValues.containsKey(PetEntry.COLUMN_PET_NAME)){
+            String name= contentValues.getAsString("name");
+            if (name!= null && name.isEmpty()){
+                throw new IllegalArgumentException("Pet require a name");
+            }
+        }
+        //check sanity of contentValues
+        //check for gender validation
+        if (contentValues.containsKey(PetEntry.COLUMN_PET_GENDER)){
+            Integer gender =contentValues.getAsInteger("gender");
+            if (gender !=null && !PetsContract.isValidGender(gender)){
+                throw new IllegalArgumentException("The value fo gender of pet must be an integer between 0-2");
+            }
+        }
+
+        //check validity of weight
+        if (contentValues.containsKey(PetEntry.COLUMN_PET_WEIGHT)){
+            Integer weight =contentValues.getAsInteger("weight");
+            if (weight!=null && weight <0){
+                throw new IllegalArgumentException("The value of weight must be positive");
+            }
+
+        }
+
+        //check validity of uri
+        int match= sUriMatcher.match(uri);
+        switch (match){
+            case PETS://update multiple row in table
+                return updatePets(uri,contentValues,selection,selectionArg);
+
+            case PETS_ID://update a specific row with id=?
+                selection =PetEntry._ID +"=?";
+                selectionArg = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                return updatePets(uri,contentValues,selection,selectionArg);
+
+            default:
+                return 0;
+        }
     }
 
     //A method to insert a row into table and return uri of new row
@@ -107,9 +166,19 @@ public class PetProvider extends ContentProvider {
 
         long newRowId = db.insert(PetEntry.TABLE_NAME,null,values);
         if (newRowId == -1){//insertion unsuccessful
-            Log.e(lOG_TAG,"insertion unsuccessfull for  uri: " + uri);
+            Log.e(lOG_TAG,"insertion unsuccessful for  uri: " + uri);
             return  null;
         }
         return ContentUris.withAppendedId(PetEntry.CONTENT_URI,newRowId);
     }
+
+    //A helper method to update a table using PetDbHelper class
+    //and return the number of rows that has been affected
+    private int updatePets(Uri uri,ContentValues values,String selection, String[] selectionArg){
+        //create a writable database object
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        return db.update(PetEntry.TABLE_NAME,values,selection,selectionArg);
+    }
+
 }
