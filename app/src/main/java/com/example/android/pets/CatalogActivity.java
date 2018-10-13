@@ -126,7 +126,8 @@ public class CatalogActivity extends AppCompatActivity {
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
-                // Do nothing for now
+                deleteAllRows();
+                displayDatabaseInfo();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -184,4 +185,15 @@ public class CatalogActivity extends AppCompatActivity {
             if (cursor != null)cursor.close();
         }
     }
+
+    //A method to delete all rows from table
+    private void deleteAllRows(){
+        int result = getContentResolver().delete(PetEntry.CONTENT_URI,null,null);
+        if (result ==0){
+            Toast.makeText(this, "Unable to delete rows in table", Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(this, "All rows has been deleted", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 }
