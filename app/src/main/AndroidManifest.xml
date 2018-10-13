@@ -40,9 +40,8 @@
         <provider
             android:authorities="com.example.android.pets"
             android:name=".data.PetProvider"
-            android:exported="false">
+            android:exported="false"/>
 
-        </provider>
     </application>
 
 </manifest>

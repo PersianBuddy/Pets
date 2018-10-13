@@ -19,6 +19,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -30,12 +31,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.pets.data.PetDbHelper;
+import com.example.android.pets.data.PetProvider;
 import com.example.android.pets.data.PetsContract.PetEntry;
 
 /**
  * Displays list of pets that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity {
+    //tags that will used in error log message
+    private final String LOG_TAG = CatalogActivity.class.getSimpleName();
+
     //subclass of SqliteOperHelper
     private PetDbHelper mDbHelper;
 
@@ -137,16 +142,20 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database.
      */
     private void displayDatabaseInfo() {
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+        //Make a uri to select all rows
+        Uri uri = PetEntry.CONTENT_URI;
 
-        //Make a query to select all rows
         //make a projection for columns that we want to be selected
         String[] projection={PetEntry._ID,PetEntry.COLUMN_PET_NAME,
         PetEntry.COLUMN_PET_BREED,PetEntry.COLUMN_PET_GENDER,PetEntry.COLUMN_PET_WEIGHT};
-        Cursor cursor = db.query(PetEntry.TABLE_NAME,projection,null,null,null,null,null);
+
+        // create object of class cursor
+        Cursor cursor = null;
 
         try {
+            //get result of query from database using petProvider object
+            cursor = getContentResolver().query(uri,projection,null,null,null);
+
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
             TextView displayView = (TextView) findViewById(R.id.text_view_pet);
@@ -165,10 +174,13 @@ public class CatalogActivity extends AppCompatActivity {
                         cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT))+ " \n ";
                 displayView.append(temp);
             }while (cursor.moveToNext());
-        } finally {
+        }catch (IllegalArgumentException e) {
+            Log.e(LOG_TAG,"Invalid query",e);
+        }finally
+        {
             // Always close the cursor when you're done reading from it. This releases all its
             // resources and makes it invalid.
-            cursor.close();
+            if (cursor != null)cursor.close();
         }
     }
 }
