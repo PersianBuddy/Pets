@@ -90,8 +90,6 @@ public class CatalogActivity extends AppCompatActivity {
     //A method to insert a dummy row inside database
     private void insertDummyData(){
 
-        //get writable format of database
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         //Create Content values to put into database
         ContentValues values = new ContentValues();
@@ -101,9 +99,7 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_WEIGHT,14);
 
         //insert dummy values into database
-        long newRowId= db.insert(PetEntry.TABLE_NAME,null,values);
-        //show id of new row inside log
-        Log.v("CatalogActivity.java","New Row Id:"+newRowId);
+        getContentResolver().insert(PetEntry.CONTENT_URI,values);
     }
 
     @Override
@@ -159,21 +155,21 @@ public class CatalogActivity extends AppCompatActivity {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
             TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.append("There are "+cursor.getCount()+ " rows in pets table\n\n");
+            displayView.setText("There are "+cursor.getCount()+ " rows in pets table\n\n");
             //display name of columns at the top
             displayView.append(PetEntry._ID+" | "+PetEntry.COLUMN_PET_NAME+" | "+
                     PetEntry.COLUMN_PET_BREED+" | "+PetEntry.COLUMN_PET_GENDER+" | "+PetEntry.COLUMN_PET_WEIGHT+" \n ");
-            //go to first item inside cursor
-            cursor.moveToFirst();
-            //while there is item inside cursor read it and add it to content variable
-            do {
+
+            //while there is item inside cursor read it and add it to displayView object
+            while (cursor.moveToNext()){
                 String temp =cursor.getString(cursor.getColumnIndex(PetEntry._ID))+ " | "+
                         cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME))+ " | "+
                         cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED))+ " | "+
                         cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER))+ " | "+
                         cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT))+ " \n ";
                 displayView.append(temp);
-            }while (cursor.moveToNext());
+            }
+
         }catch (IllegalArgumentException e) {
             Log.e(LOG_TAG,"Invalid query",e);
         }finally

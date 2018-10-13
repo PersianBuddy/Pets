@@ -20,7 +20,9 @@ import com.example.android.pets.data.PetsContract.PetEntry;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -33,6 +35,8 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import java.net.URI;
 
 
 /**
@@ -118,8 +122,7 @@ public class EditorActivity extends AppCompatActivity {
     //A method to insert data into database and make an intent
     //into CatalogActivity
     private void insertPet(){
-        //get a writable database object
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
 
         //get values from view objects
         String petName =mNameEditText.getText().toString().trim();
@@ -139,16 +142,26 @@ public class EditorActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_WEIGHT,petWeight);
         values.put(PetEntry.COLUMN_PET_GENDER,mGender);
 
-        //insert data into database
-        long newRowId=db.insert(PetEntry.TABLE_NAME,null,values);
+        //insert into database using PetProvider class
+        Uri newRowUri = getContentResolver().insert(PetEntry.CONTENT_URI,values);
 
-        //make intent into Catalog Activity
-        Intent intent = new Intent(this,CatalogActivity.class);
-        //add extra to activity using bundle
-        Bundle extras =new Bundle();
-        extras.putLong("rowId",newRowId);
-        intent.putExtras(extras);
-        startActivity(intent);
+        //check if insertion was successful
+        if (newRowUri ==null){
+            Toast.makeText(this, R.string.editor_insert_pet_failed, Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(this, R.string.editor_insert_pet_successful, Toast.LENGTH_SHORT).show();
+        }
+//        //insert data into database with direct use of PetDbHelper class
+//        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+//        long newRowId=db.insert(PetEntry.TABLE_NAME,null,values);
+//
+//        //make intent into Catalog Activity
+//        Intent intent = new Intent(this,CatalogActivity.class);
+//        //add extra to activity using bundle
+//        Bundle extras =new Bundle();
+//        extras.putLong("rowId",newRowId);
+//        intent.putExtras(extras);
+//        startActivity(intent);
     }
 
     @Override
@@ -167,6 +180,7 @@ public class EditorActivity extends AppCompatActivity {
             case R.id.action_save:
                 //insert new pet into database
                 insertPet();
+                finish();
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
