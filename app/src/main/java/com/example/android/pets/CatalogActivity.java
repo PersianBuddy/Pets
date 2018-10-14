@@ -15,37 +15,48 @@
  */
 package com.example.android.pets;
 
+import android.app.LoaderManager;
 import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.pets.data.PetDbHelper;
-import com.example.android.pets.data.PetProvider;
 import com.example.android.pets.data.PetsContract.PetEntry;
 
-import java.util.List;
 
 /**
  * Displays list of pets that were entered and stored in the app.
  */
-public class CatalogActivity extends AppCompatActivity {
+public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
     //tags that will used in error log message
     private final String LOG_TAG = CatalogActivity.class.getSimpleName();
 
     //subclass of SqliteOperHelper
     private PetDbHelper mDbHelper;
+
+    //ImageView for empty ListView
+    LinearLayout mEmptyList;
+
+    //Adaptor for showing item in Listview
+    PetCursorAdaptor mAdaptor;
+
+    //Constant using for CursorLoader id
+    private static final int LOADER_ID = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +74,20 @@ public class CatalogActivity extends AppCompatActivity {
         });
 
         mDbHelper = new PetDbHelper(this);
+        mEmptyList =(LinearLayout) findViewById(R.id.empty_list);
+        mAdaptor = new PetCursorAdaptor(this,null);
 
+        //Create new object o listView
+        ListView petsListView = (ListView) findViewById(R.id.pets_list);
+        //set empty textView
+        petsListView.setEmptyView(mEmptyList);
+        //setAdaptor to ListView
+        petsListView.setAdapter(mAdaptor);
+        //set empty textView
+        petsListView.setEmptyView(mEmptyList);
+
+        //initiate loader
+        getLoaderManager().initLoader(LOADER_ID,null,this);
     }
 
     //A method to insert a dummy row inside database
@@ -101,48 +125,14 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
                 insertDummyData();
-                displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
                 deleteAllRows();
-                displayDatabaseInfo();
+                //displayDatabaseInfo();
                 return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        displayDatabaseInfo();
-    }
-
-    /**
-     * Temporary helper method to display information in the onscreen TextView about the state of
-     * the pets database.
-     */
-    private void displayDatabaseInfo() {
-        //Make a uri to select all rows
-        Uri uri = PetEntry.CONTENT_URI;
-
-        //make a projection for columns that we want to be selected
-        String[] projection={PetEntry._ID,PetEntry.COLUMN_PET_NAME,
-        PetEntry.COLUMN_PET_BREED,PetEntry.COLUMN_PET_GENDER,PetEntry.COLUMN_PET_WEIGHT};
-
-        // create object of class cursor
-        Cursor cursor ;
-        cursor = getContentResolver().query(uri,projection,null,null,null);
-        if (cursor==null){
-            Toast.makeText(this, "empty cursor", Toast.LENGTH_SHORT).show();
-        }
-        //Create new object o listView
-        ListView petsListView = (ListView) findViewById(R.id.pets_list);
-        //create a new object of PetCursorAdapter
-        PetCursorAdaptor adaptor = new PetCursorAdaptor(this,cursor);
-        //set adaptor to list view
-        petsListView.setAdapter(adaptor);
-
     }
 
     //A method to delete all rows from table
@@ -155,4 +145,33 @@ public class CatalogActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        //make a projection for columns that we want to be selected
+        String [] projection={PetEntry._ID,PetEntry.COLUMN_PET_NAME,
+                PetEntry.COLUMN_PET_BREED};
+
+        // Now create and return a CursorLoader that will take care of
+        // creating a Cursor for the data being displayed
+        //There in no need to create a subclass of CursorLoader (like AsyncLoader) because it's a subclass of AsyncLoader
+        return new CursorLoader(this,PetEntry.CONTENT_URI,projection,null,null,null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        // Swap the new cursor in. (The framework will take care of closing the
+        // old cursor once we return.)
+        if (cursor == null){
+            mEmptyList.setVisibility(View.VISIBLE);
+        }else{
+            mEmptyList.setVisibility(View.INVISIBLE);
+        }
+        mAdaptor.swapCursor(cursor);
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mAdaptor.swapCursor(null);
+    }
 }
