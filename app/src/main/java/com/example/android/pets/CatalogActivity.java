@@ -27,12 +27,15 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.pets.data.PetDbHelper;
 import com.example.android.pets.data.PetProvider;
 import com.example.android.pets.data.PetsContract.PetEntry;
+
+import java.util.List;
 
 /**
  * Displays list of pets that were entered and stored in the app.
@@ -61,30 +64,6 @@ public class CatalogActivity extends AppCompatActivity {
 
         mDbHelper = new PetDbHelper(this);
 
-        displayInsertResult();
-
-    }
-
-    // Method that shows (as toast) result of adding new Pet into database
-    //info are getting from an intent from EditorActivity
-    private void displayInsertResult(){
-        //get newRowId from intent from editorActivity
-        Bundle extras = getIntent().getExtras();
-        try{
-            if (!extras.isEmpty()){
-                Long insertResult = extras.getLong("rowId");
-                if (insertResult ==-1){
-                    Toast.makeText(this, "Error adding new pet to database", Toast.LENGTH_SHORT).show();
-                }else{
-                    Toast.makeText(this,"New Row with id " +
-                            insertResult+ " has been created!",Toast.LENGTH_SHORT).show();
-                }
-            }else{
-                Toast.makeText(this, "Empty Extra", Toast.LENGTH_SHORT).show();
-            }
-        }catch (NullPointerException e){
-            Log.e("CatalogActivity","Bundle is null",e);
-        }
     }
 
     //A method to insert a dummy row inside database
@@ -152,38 +131,18 @@ public class CatalogActivity extends AppCompatActivity {
         PetEntry.COLUMN_PET_BREED,PetEntry.COLUMN_PET_GENDER,PetEntry.COLUMN_PET_WEIGHT};
 
         // create object of class cursor
-        Cursor cursor = null;
-
-        try {
-            //get result of query from database using petProvider object
-            cursor = getContentResolver().query(uri,projection,null,null,null);
-
-            // Display the number of rows in the Cursor (which reflects the number of rows in the
-            // pets table in the database).
-            TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.setText("There are "+cursor.getCount()+ " rows in pets table\n\n");
-            //display name of columns at the top
-            displayView.append(PetEntry._ID+" | "+PetEntry.COLUMN_PET_NAME+" | "+
-                    PetEntry.COLUMN_PET_BREED+" | "+PetEntry.COLUMN_PET_GENDER+" | "+PetEntry.COLUMN_PET_WEIGHT+" \n ");
-
-            //while there is item inside cursor read it and add it to displayView object
-            while (cursor.moveToNext()){
-                String temp =cursor.getString(cursor.getColumnIndex(PetEntry._ID))+ " | "+
-                        cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME))+ " | "+
-                        cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED))+ " | "+
-                        cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER))+ " | "+
-                        cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT))+ " \n ";
-                displayView.append(temp);
-            }
-
-        }catch (IllegalArgumentException e) {
-            Log.e(LOG_TAG,"Invalid query",e);
-        }finally
-        {
-            // Always close the cursor when you're done reading from it. This releases all its
-            // resources and makes it invalid.
-            if (cursor != null)cursor.close();
+        Cursor cursor ;
+        cursor = getContentResolver().query(uri,projection,null,null,null);
+        if (cursor==null){
+            Toast.makeText(this, "empty cursor", Toast.LENGTH_SHORT).show();
         }
+        //Create new object o listView
+        ListView petsListView = (ListView) findViewById(R.id.pets_list);
+        //create a new object of PetCursorAdapter
+        PetCursorAdaptor adaptor = new PetCursorAdaptor(this,cursor);
+        //set adaptor to list view
+        petsListView.setAdapter(adaptor);
+
     }
 
     //A method to delete all rows from table
