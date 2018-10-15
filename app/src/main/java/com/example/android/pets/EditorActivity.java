@@ -21,16 +21,19 @@ import com.example.android.pets.data.PetsContract.PetEntry;
 import android.app.LoaderManager;
 import android.content.ContentValues;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -71,6 +74,9 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     //Loader id
     private static final int LOADER_ID=1;
 
+    //a boolean variable that return true if a view has been changed
+    private boolean mPetHasChanged = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +100,21 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         }else{
             setTitle(R.string.add_new_pet_page_title);
         }
+
+        //create onTouch listener object
+        View.OnTouchListener mTouchListener = new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                Toast.makeText(EditorActivity.this, "toched", Toast.LENGTH_SHORT).show();
+                mPetHasChanged = true;
+                return false;
+            }
+        };
+        //set touchListener
+        mNameEditText.setOnTouchListener(mTouchListener);
+        mBreedEditText.setOnTouchListener(mTouchListener);
+        mWeightEditText.setOnTouchListener(mTouchListener);
+        mGenderSpinner.setOnTouchListener(mTouchListener);
 
         //Initiate loader for update hint of editText in UI
         getLoaderManager().initLoader(LOADER_ID,null,this);
@@ -234,8 +255,12 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
-                // Navigate back to parent activity (CatalogActivity)
-                NavUtils.navigateUpFromSameTask(this);
+                if (!mPetHasChanged){
+                    // Navigate back to parent activity (CatalogActivity)
+                    NavUtils.navigateUpFromSameTask(this);
+                }else {//pet data has been changed
+                    showUnsavedChangesDialog();
+                }
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -277,5 +302,42 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
 
+    }
+//    Let’s make a method which will create the dialog below:
+
+    private void showUnsavedChangesDialog() {
+        // Create an AlertDialog.Builder and set the message, and click listeners
+        // for the positive and negative buttons on the dialog.
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.unsaved_changes_dialog_msg);
+        builder.setPositiveButton(R.string.discard, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //close the current activity and return to previous one
+                finish();
+            }
+        });
+        builder.setNegativeButton(R.string.keep_editing, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked the "Keep editing" button, so dismiss the dialog
+                // and continue editing the pet.
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        // Create and show the AlertDialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (!mPetHasChanged){
+            super.onBackPressed();
+        }else {//pet data has been changed
+            showUnsavedChangesDialog();
+        }
     }
 }
