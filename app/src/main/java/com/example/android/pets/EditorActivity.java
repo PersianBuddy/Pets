@@ -142,7 +142,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     //A method to insert data into database and make an intent
     //into CatalogActivity
-    private void insertPet(){
+    private void savePet(){
 
 
         //get values from view objects
@@ -163,34 +163,47 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         values.put(PetEntry.COLUMN_PET_WEIGHT,petWeight);
         values.put(PetEntry.COLUMN_PET_GENDER,mGender);
 
-        //uri for return value of insert in PetProvider class
-        Uri newRowUri=null;
-        try {
-            //insert into database using PetProvider class
-            newRowUri = getContentResolver().insert(PetEntry.CONTENT_URI,values);
-        }catch (IllegalArgumentException e){
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+
+
+        //There are to case of saving pet to database
+        //case 1: insert new pet
+        //case 2: update an existing pet
+        String saveCase = getTitle().toString();
+        if (saveCase.equals(getString(R.string.add_new_pet_page_title))){//add new pet
+            //uri for return value of insert in PetProvider class
+            Uri newRowUri=null;
+
+            try {
+                //insert into database using PetProvider class
+                newRowUri = getContentResolver().insert(PetEntry.CONTENT_URI,values);
+            }catch (IllegalArgumentException e){
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+
+            //check if insertion was successful
+            if (newRowUri ==null){
+                Toast.makeText(this, R.string.editor_insert_pet_failed, Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(this, R.string.editor_insert_pet_successful, Toast.LENGTH_SHORT).show();
+            }
+        }else {//update existing pet
+            //the number of rows that has been updated
+            int rowsUpdated =0;
+
+            try {
+                //insert into database using PetProvider class
+                rowsUpdated = getContentResolver().update(mUri,values,null,null);
+            }catch (IllegalArgumentException e){
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+            //check if insertion was successful
+            if (rowsUpdated == 0){
+                Toast.makeText(this, "Update has failed", Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(this, " Update has been successful", Toast.LENGTH_SHORT).show();
+            }
         }
 
-
-        //check if insertion was successful
-        if (newRowUri ==null){
-            Toast.makeText(this, R.string.editor_insert_pet_failed, Toast.LENGTH_SHORT).show();
-        }else{
-            Toast.makeText(this, R.string.editor_insert_pet_successful, Toast.LENGTH_SHORT).show();
-        }
-
-//        //insert data into database with direct use of PetDbHelper class
-//        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-//        long newRowId=db.insert(PetEntry.TABLE_NAME,null,values);
-//
-//        //make intent into Catalog Activity
-//        Intent intent = new Intent(this,CatalogActivity.class);
-//        //add extra to activity using bundle
-//        Bundle extras =new Bundle();
-//        extras.putLong("rowId",newRowId);
-//        intent.putExtras(extras);
-//        startActivity(intent);
     }
 
     @Override
@@ -208,7 +221,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
                 //insert new pet into database
-                insertPet();
+                savePet();
                 //exit this activity and return to previous one
                 finish();
                 return true;
@@ -225,29 +238,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         return super.onOptionsItemSelected(item);
     }
 
-//    //A method that shows current pets info as hint for textEditors
-//    private void showCurrentPet(Uri uri){
-//        String [] projection ={
-//                PetEntry.COLUMN_PET_NAME,
-//                PetEntry.COLUMN_PET_BREED,
-//                PetEntry.COLUMN_PET_WEIGHT,
-//                PetEntry.COLUMN_PET_GENDER
-//        };
-//        //cursor that contain info of pet
-//        Cursor cursor = getContentResolver().query(uri,projection,null,null,null);
-//
-//        if (cursor!= null && cursor.moveToFirst()){
-//
-//            mNameEditText.setHint(cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME)));
-//            mBreedEditText.setHint(cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED)));
-//            mWeightEditText.setHint(cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT)));
-//            mGenderSpinner.setSelection(cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER)));
-//
-//            //free the cursor
-//            cursor.close();
-//        }
-//
-//    }
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
@@ -283,6 +273,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        Toast.makeText(this, "Loader in EditorActivity reseted", Toast.LENGTH_SHORT).show();
+
     }
 }
