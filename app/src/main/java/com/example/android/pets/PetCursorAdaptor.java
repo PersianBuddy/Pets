@@ -28,6 +28,6 @@ public class PetCursorAdaptor extends CursorAdapter {
 
         //Set text attribute of TextViews to new values in Cursor
         nameTextView.setText(cursor.getString(cursor.getColumnIndex(PetsContract.PetEntry.COLUMN_PET_NAME)));
-        breedTextView.setText(cursor.getString(cursor.getColumnIndex(PetsContract.PetEntry.COLUMN_PET_NAME)));
+        breedTextView.setText(cursor.getString(cursor.getColumnIndex(PetsContract.PetEntry.COLUMN_PET_BREED)));
     }
 }

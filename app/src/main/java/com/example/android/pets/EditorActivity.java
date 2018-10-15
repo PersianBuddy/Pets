@@ -18,8 +18,11 @@ package com.example.android.pets;
 import com.example.android.pets.data.PetDbHelper;
 import com.example.android.pets.data.PetsContract.PetEntry;
 
+import android.app.LoaderManager;
 import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -42,7 +45,7 @@ import java.net.URI;
 /**
  * Allows user to create a new pet or edit an existing one.
  */
-public class EditorActivity extends AppCompatActivity {
+public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     //subclass of SqliteOpenHelper
     PetDbHelper mDbHelper;
 
@@ -64,6 +67,12 @@ public class EditorActivity extends AppCompatActivity {
      */
     private int mGender = 0;
 
+    //global variable for uri of current pet in case u want to edit one
+    private Uri mUri;
+
+    //Loader id
+    private static final int LOADER_ID=1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,11 +91,14 @@ public class EditorActivity extends AppCompatActivity {
         //get intent if exist
         Intent intent = getIntent();
         if (intent.hasExtra("itemUri")){
-            Uri currentUri = Uri.parse(intent.getExtras().getString("itemUri")) ;
+            mUri = Uri.parse(intent.getExtras().getString("itemUri")) ;
             setTitle(R.string.edit_page_title);
         }else{
             setTitle(R.string.add_new_pet_page_title);
         }
+
+        //Initiate loader for update hint of editText in UI
+        getLoaderManager().initLoader(LOADER_ID,null,this);
     }
 
     /**
@@ -211,5 +223,66 @@ public class EditorActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+//    //A method that shows current pets info as hint for textEditors
+//    private void showCurrentPet(Uri uri){
+//        String [] projection ={
+//                PetEntry.COLUMN_PET_NAME,
+//                PetEntry.COLUMN_PET_BREED,
+//                PetEntry.COLUMN_PET_WEIGHT,
+//                PetEntry.COLUMN_PET_GENDER
+//        };
+//        //cursor that contain info of pet
+//        Cursor cursor = getContentResolver().query(uri,projection,null,null,null);
+//
+//        if (cursor!= null && cursor.moveToFirst()){
+//
+//            mNameEditText.setHint(cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME)));
+//            mBreedEditText.setHint(cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED)));
+//            mWeightEditText.setHint(cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT)));
+//            mGenderSpinner.setSelection(cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER)));
+//
+//            //free the cursor
+//            cursor.close();
+//        }
+//
+//    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        String [] projection ={
+                PetEntry.COLUMN_PET_NAME,
+                PetEntry.COLUMN_PET_BREED,
+                PetEntry.COLUMN_PET_WEIGHT,
+                PetEntry.COLUMN_PET_GENDER
+        };
+
+        //return the cursor
+        if (mUri!= null){
+            return new CursorLoader(this,mUri,projection,null,null,null);
+        }
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        if (cursor!= null && cursor.moveToFirst()){
+            //get pet properties from cursor
+            String petName =cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME));
+            String petBreed =cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED));
+            Integer petWeight = cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT));
+            Integer petGender = cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER));
+
+            mNameEditText.setText(petName);
+            mBreedEditText.setText(petBreed);
+            mWeightEditText.setText(Integer.toString(petWeight));
+            mGenderSpinner.setSelection(petGender);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        Toast.makeText(this, "Loader in EditorActivity reseted", Toast.LENGTH_SHORT).show();
     }
 }
