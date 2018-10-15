@@ -46,13 +46,13 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
     //tags that will used in error log message
     private final String LOG_TAG = CatalogActivity.class.getSimpleName();
 
-    //subclass of SqliteOperHelper
+    //subclass of SqliteOpenHelper
     private PetDbHelper mDbHelper;
 
     //ImageView for empty ListView
     LinearLayout mEmptyList;
 
-    //Adaptor for showing item in Listview
+    //Adaptor for showing item in ListView
     PetCursorAdaptor mAdaptor;
 
     //Constant using for CursorLoader id

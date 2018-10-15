@@ -68,6 +68,11 @@ public class PetProvider extends ContentProvider {
                 throw new IllegalArgumentException("Can not query unknown uri" + uri);
         }
 
+        //Set Notification for uri so that if it changes it will notify contentResolver to reload the ContentLoader
+        //The uri that must be watch in this case is the uri that represent whole table
+        //PET_ENTRY.CONTENT_URI or case PETS in mUriMatcher
+        cursor.setNotificationUri(getContext().getContentResolver(),uri);
+
         return cursor;
     }
 
@@ -120,26 +125,37 @@ public class PetProvider extends ContentProvider {
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArg) {
         //create a writable object of database
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        // a variable that represent the number rows that has been deleted
+        int numRowDeleted;
 
         //check validity of uri
         int match= sUriMatcher.match(uri);
         switch (match){
             case PETS://update multiple row in table
-                return db.delete(PetEntry.TABLE_NAME,selection,selectionArg);
+                numRowDeleted = db.delete(PetEntry.TABLE_NAME,selection,selectionArg);
+                break;
 
             case PETS_ID://update a specific row with id=?
                 selection =PetEntry._ID +"=?";
                 selectionArg = new String[]{String.valueOf(ContentUris.parseId(uri))};
-                return db.delete(PetEntry.TABLE_NAME,selection,selectionArg);
+                numRowDeleted = db.delete(PetEntry.TABLE_NAME,selection,selectionArg);
+                break;
 
             default:
                 throw new IllegalArgumentException("Deletion is not supported for " + uri);
         }
+
+        //notify contentResolver if uri has been changed
+        if (numRowDeleted != 0)getContext().getContentResolver().notifyChange(uri,null);
+        return numRowDeleted;
     }
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String selection, @Nullable String[] selectionArg) {
-         //sanity check of inputs in contentValues
+        //number of rows that has been updated
+        int rowsUpdated;
+
+        //sanity check of inputs in contentValues
         if (contentValues == null || contentValues.size() == 0)return 0;
         //Check validity of name
         if (contentValues.containsKey(PetEntry.COLUMN_PET_NAME)){
@@ -170,16 +186,25 @@ public class PetProvider extends ContentProvider {
         int match= sUriMatcher.match(uri);
         switch (match){
             case PETS://update multiple row in table
-                return updatePets(uri,contentValues,selection,selectionArg);
+                rowsUpdated = updatePets(uri,contentValues,selection,selectionArg);
+                break;
 
             case PETS_ID://update a specific row with id=?
                 selection =PetEntry._ID +"=?";
                 selectionArg = new String[]{String.valueOf(ContentUris.parseId(uri))};
-                return updatePets(uri,contentValues,selection,selectionArg);
+                rowsUpdated = updatePets(uri,contentValues,selection,selectionArg);
+                break;
 
             default:
                 throw new IllegalArgumentException("Update is not supported for " + uri);
         }
+
+        //notify contentResolver if table has changed
+        //it table changed the loader will be reloaded
+        if (rowsUpdated != 0)
+            getContext().getContentResolver().notifyChange(uri,null);
+
+        return rowsUpdated;
     }
 
     //A method to insert a row into table and return uri of new row
@@ -193,6 +218,11 @@ public class PetProvider extends ContentProvider {
             Log.e(lOG_TAG,"insertion unsuccessful for  uri: " + uri);
             return  null;
         }
+
+        //notify contentResolver for change in uri
+        //the uri that we are watching is PET_ENTRY.CONTENT_URI
+        getContext().getContentResolver().notifyChange(uri,null);
+
         return ContentUris.withAppendedId(PetEntry.CONTENT_URI,newRowId);
     }
 
