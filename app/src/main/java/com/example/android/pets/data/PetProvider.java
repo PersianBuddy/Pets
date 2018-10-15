@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.android.pets.R;
 import com.example.android.pets.data.PetsContract.PetEntry;
 
 
@@ -111,6 +112,12 @@ public class PetProvider extends ContentProvider {
         if (name== null || name.isEmpty()){
             throw new IllegalArgumentException("Pet require a name");
         }
+        //set default value for breed
+        String breed = contentValues.getAsString("breed");
+        if (breed == null || breed.isEmpty()){
+            breed =getContext().getString(R.string.unknown_breed);
+            contentValues.put("breed",breed);
+        }
 
         //check validity of uri
         int match = sUriMatcher.match(uri);
@@ -180,6 +187,13 @@ public class PetProvider extends ContentProvider {
                 throw new IllegalArgumentException("The value of weight must be positive");
             }
 
+        }
+
+        //set default value for breed
+        String breed = contentValues.getAsString("breed");
+        if (breed!=null && breed.isEmpty()){
+            breed = getContext().getString(R.string.unknown_breed);
+            contentValues.put("breed",breed);
         }
 
         //check validity of uri
