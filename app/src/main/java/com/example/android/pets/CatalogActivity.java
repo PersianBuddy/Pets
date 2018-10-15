@@ -29,6 +29,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -88,6 +89,22 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
         //initiate loader
         getLoaderManager().initLoader(LOADER_ID,null,this);
+
+        //set OnItemClickListener for PetsListView
+        petsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                //create an intent to EditorActivity
+                Intent intent = new Intent(CatalogActivity.this,EditorActivity.class);
+                //get uri of current item
+                Uri  currentUri =Uri.withAppendedPath(PetEntry.CONTENT_URI,Long.toString(id));
+                //add uri as extra to intent
+                intent.putExtra("itemUri",currentUri.toString());
+
+                //start activity
+                startActivity(intent);
+            }
+        });
     }
 
     //A method to insert a dummy row inside database

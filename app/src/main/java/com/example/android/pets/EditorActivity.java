@@ -78,6 +78,15 @@ public class EditorActivity extends AppCompatActivity {
         //initiate subclass of SqliteDbhelper
         mDbHelper = new PetDbHelper(this);
         setupSpinner();
+
+        //get intent if exist
+        Intent intent = getIntent();
+        if (intent.hasExtra("itemUri")){
+            Uri currentUri = Uri.parse(intent.getExtras().getString("itemUri")) ;
+            setTitle(R.string.edit_page_title);
+        }else{
+            setTitle(R.string.add_new_pet_page_title);
+        }
     }
 
     /**

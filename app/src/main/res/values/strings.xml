@@ -69,4 +69,10 @@
 
     <!-- Subtitle text for the empty view that prompts the user to add a pet [CHAR LIMIT=50] -->
     <string name="empty_view_subtitle_text">Get started by adding a pet</string>
+
+    <!--Title of edit page when using to update a pet in table-->
+    <string name="edit_page_title">Edit Pet</string>
+
+    <!--Title of EditorActivity when using to add new pet to table-->
+    <string name="add_new_pet_page_title">Add Pet</string>
 </resources>
