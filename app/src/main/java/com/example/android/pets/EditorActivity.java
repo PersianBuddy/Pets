@@ -24,7 +24,6 @@ import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -39,7 +38,6 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import java.net.URI;
 
 
 /**
@@ -150,6 +148,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         String petBreed = mBreedEditText.getText().toString().trim();
         String weightString =mWeightEditText.getText().toString().trim();
         Integer petWeight;
+
         if (!weightString.isEmpty()){
             petWeight= Integer.parseInt(weightString);
         }else{
@@ -185,6 +184,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 Toast.makeText(this, R.string.editor_insert_pet_failed, Toast.LENGTH_SHORT).show();
             }else{
                 Toast.makeText(this, R.string.editor_insert_pet_successful, Toast.LENGTH_SHORT).show();
+                //close the current activity and return to previous one
+                finish();
             }
         }else {//update existing pet
             //the number of rows that has been updated
@@ -201,8 +202,12 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 Toast.makeText(this, "Update has failed", Toast.LENGTH_SHORT).show();
             }else{
                 Toast.makeText(this, " Update has been successful", Toast.LENGTH_SHORT).show();
+                //close the current activity and return to previous one
+                finish();
+
             }
         }
+
 
     }
 
@@ -222,8 +227,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             case R.id.action_save:
                 //insert new pet into database
                 savePet();
-                //exit this activity and return to previous one
-                finish();
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
