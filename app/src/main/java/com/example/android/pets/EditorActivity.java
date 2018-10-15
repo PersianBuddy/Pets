@@ -99,13 +99,14 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             setTitle(R.string.edit_page_title);
         }else{
             setTitle(R.string.add_new_pet_page_title);
+            //invoke onPrepareOptionsMenu
+            invalidateOptionsMenu();
         }
 
         //create onTouch listener object
         View.OnTouchListener mTouchListener = new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                Toast.makeText(EditorActivity.this, "toched", Toast.LENGTH_SHORT).show();
                 mPetHasChanged = true;
                 return false;
             }
@@ -251,7 +252,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
-                // Do nothing for now
+                deletePet();
                 return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
@@ -338,6 +339,28 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             super.onBackPressed();
         }else {//pet data has been changed
             showUnsavedChangesDialog();
+        }
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        // If this is a new pet, hide the "Delete" menu item.
+        if (mUri == null) {
+            MenuItem menuItem = menu.findItem(R.id.action_delete);
+            menuItem.setVisible(false);
+        }
+        return true;
+    }
+
+    // A method for deleting an existing pet from database
+    private void deletePet(){
+        int rowsDeleted = getContentResolver().delete(mUri,null,null);
+        if (rowsDeleted==0){
+            Toast.makeText(this, "Unable to Delete this pet", Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(this, "Pet successfully deleted from database", Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
 }
